@@ -17,7 +17,9 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
  
 const app = express();
- 
+
+const https = require('https');
+  
 var dir = 'public';
 var subDirectory = 'public/uploads';
  
@@ -64,7 +66,7 @@ app.get('/',(req,res) => {
 app.post('/merge',upload.array('files',1000),(req,res) => {
  
     list = "";
-    // console.log(file.path);
+    // console.log('file.path ', file.path);
     if(req.files){
         
         req.files.forEach(file => {
@@ -87,17 +89,47 @@ app.post('/merge',upload.array('files',1000),(req,res) => {
             }
             else{
                 console.log("videos are successfully merged");
-            res.download(outputFilePath,(err) => {
+
+
+                fs.readFile(outputFilePath, function (err, data) {
+                    const request = https.request('https://content.dropboxapi.com/2/files/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer sl.BRCHCb1bra6wVSWMuQPcjaFcsf1nVPh-W3vQzSYg3pJh8kGHpRpqPSsmdPXPfxSiaXNIoatQWTjSB1yQ9fnNKb46p07DlsojtmUtvA0R9oJOy0Oo5xpNVAwvbPxxNKuoclOlPbo_8cSO',
+                            'Dropbox-API-Arg': JSON.stringify({
+                                'path': `/test/${outputFilePath}`,
+                                'mode': 'overwrite',
+                                'autorename': true, 
+                                'mute': false
+                            }),
+                            'Content-Type': 'application/octet-stream',
+                        }
+                    }, (res) => {
+                        console.log("statusCode: ", res.statusCode);
+                        console.log("headers: ", res.headers);
+                
+                        res.on('data', function(d) {
+                            process.stdout.write(d);
+                        });
+                    });
+                    request.on('error', error => {
+                        console.error(error)
+                      })
+                    request.write(data);
+                    request.end();
+                });
+
+                
+                res.download(outputFilePath,(err) => {
                 if(err) throw err
  
                 req.files.forEach(file => {
+                    console.log('------- ', file);
                     fs.unlinkSync(file.path);             
                 });
  
                 fs.unlinkSync(listFilePath);
                 fs.unlinkSync(outputFilePath);
- 
-              
  
             });
         }
