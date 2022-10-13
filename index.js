@@ -52,6 +52,7 @@ var upload = multer({storage:storage,fileFilter:videoFilter});
  
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
+// app.use(bodyParser());
 app.use(express.static('public'));
  
  
@@ -66,10 +67,11 @@ app.get('/',(req,res) => {
 app.post('/merge',upload.array('files',1000),(req,res) => {
  
     list = "";
-    // console.log('file.path ', file.path);
+    const files = [];
     if(req.files){
         
         req.files.forEach(file => {
+            files.push(file.path);
             list += `file ${file.filename}`;
             list += "\n";
             
@@ -81,7 +83,8 @@ app.post('/merge',upload.array('files',1000),(req,res) => {
  
         writeStream.end();
  
-        exec(`ffmpeg -safe 0 -f concat -i ${listFilePath} -c copy ${outputFilePath}`, (error, stdout, stderr) => {
+        // exec(`ffmpeg -safe 0 -f concat -i ${listFilePath} -c copy ${outputFilePath} -y`, (error, stdout, stderr) => {
+        exec(`ffmpeg -i ${files[0]} -i ${files[1]}  -filter_complex "[0:v:0]scale=1920:1080[c1]; [1:v:0]scale=1920:1080[c2], [c1] [0:a:0] [c2] [1:a:0] concat=n=2:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" ${outputFilePath} -y`, (error, stdout, stderr) => {
           
             if (error) {
                 console.log(`error: ${error.message}`);
@@ -95,7 +98,7 @@ app.post('/merge',upload.array('files',1000),(req,res) => {
                     const request = https.request('https://content.dropboxapi.com/2/files/upload', {
                         method: 'POST',
                         headers: {
-                            'Authorization': 'Bearer sl.BRCHCb1bra6wVSWMuQPcjaFcsf1nVPh-W3vQzSYg3pJh8kGHpRpqPSsmdPXPfxSiaXNIoatQWTjSB1yQ9fnNKb46p07DlsojtmUtvA0R9oJOy0Oo5xpNVAwvbPxxNKuoclOlPbo_8cSO',
+                            'Authorization': 'Bearer sl.BRFG8qJJcgb0Zk0rzYYTUwSwnctwhks1Pd7_S7vuTl7aDVuKKNuN8EmPlzGO4fFPIiOKKdCQSZFtH1A0KMCOFxrcXFLg6IPOzZ_UNraBLenIuaZoItTmE5Y8EYDy455EI_zPbIGBBR8t',
                             'Dropbox-API-Arg': JSON.stringify({
                                 'path': `/test/${outputFilePath}`,
                                 'mode': 'overwrite',
