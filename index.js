@@ -98,7 +98,7 @@ app.post('/merge',upload.array('files',1000),(req,res) => {
                     const request = https.request('https://content.dropboxapi.com/2/files/upload', {
                         method: 'POST',
                         headers: {
-                            'Authorization': 'Bearer sl.BRFG8qJJcgb0Zk0rzYYTUwSwnctwhks1Pd7_S7vuTl7aDVuKKNuN8EmPlzGO4fFPIiOKKdCQSZFtH1A0KMCOFxrcXFLg6IPOzZ_UNraBLenIuaZoItTmE5Y8EYDy455EI_zPbIGBBR8t',
+                            'Authorization': 'Bearer sl.BREGxzhx5Ld_p7Y804xVelgDo-fqLjkZtInO82luKeNf2qwO3RLbMjNZsx7nR8tyT98cZIrIgqtnMDuPwXF25UIK_CR7EOm0MRGDeY3oplfdlXn3uMhoTKDJtWjOAeBtT8lsRXY9Vz_x',
                             'Dropbox-API-Arg': JSON.stringify({
                                 'path': `/test/${outputFilePath}`,
                                 'mode': 'overwrite',
