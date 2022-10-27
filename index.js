@@ -64,27 +64,36 @@ app.get('/',(req,res) => {
  
 })
  
-app.post('/merge',upload.array('files',1000),(req,res) => {
+app.post('/merge',(req,res) => {
+// app.post('/merge',upload.array('files',1000),(req,res) => {
  
     list = "";
     const files = [];
-    if(req.files){
+    // if(req.files){
+    if(req.body){
         
-        req.files.forEach(file => {
-            files.push(file.path);
-            list += `file ${file.filename}`;
-            list += "\n";
+        // req.files.forEach(file => {
+        //     files.push(file.path);
+        //     list += `file ${file.filename}`;
+        //     list += "\n";
             
-        });
+        // });
  
         var writeStream = fs.createWriteStream(listFilePath);
  
         writeStream.write(list);
  
         writeStream.end();
+        
+        const link1 = req.body.link1.replace('?dl=0', '?raw=1');
+        const link2 = req.body.link2.replace('?dl=0', '?raw=1');
+        const token = req.body.token;
+        const path = req.body.path;
+
+        console.log(`merging ${link1} and ${link2}  ...`);
  
         // exec(`ffmpeg -safe 0 -f concat -i ${listFilePath} -c copy ${outputFilePath} -y`, (error, stdout, stderr) => {
-        exec(`ffmpeg -i ${files[0]} -i ${files[1]}  -filter_complex "[0:v:0]scale=1920:1080[c1]; [1:v:0]scale=1920:1080[c2], [c1] [0:a:0] [c2] [1:a:0] concat=n=2:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" ${outputFilePath} -y`, (error, stdout, stderr) => {
+        exec(`ffmpeg -i ${link1} -i ${link2} -filter_complex "[0:v:0]scale=1920:1080[c1]; [1:v:0]scale=1920:1080[c2], [c1] [0:a:0] [c2] [1:a:0] concat=n=2:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" ${outputFilePath} -y`, (error, stdout, stderr) => {
           
             if (error) {
                 console.log(`error: ${error.message}`);
@@ -96,11 +105,13 @@ app.post('/merge',upload.array('files',1000),(req,res) => {
 
                 fs.readFile(outputFilePath, function (err, data) {
                     const request = https.request('https://content.dropboxapi.com/2/files/upload', {
+                    // const request = https.request('https://content.dropboxapi.com/2/files/get_thumbnail_v2', {
                         method: 'POST',
                         headers: {
-                            'Authorization': 'Bearer sl.BREGxzhx5Ld_p7Y804xVelgDo-fqLjkZtInO82luKeNf2qwO3RLbMjNZsx7nR8tyT98cZIrIgqtnMDuPwXF25UIK_CR7EOm0MRGDeY3oplfdlXn3uMhoTKDJtWjOAeBtT8lsRXY9Vz_x',
+                            'Authorization': `Bearer ${token}`,
+    
                             'Dropbox-API-Arg': JSON.stringify({
-                                'path': `/test/${outputFilePath}`,
+                                'path': `${path}/${outputFilePath}`,
                                 'mode': 'overwrite',
                                 'autorename': true, 
                                 'mute': false
@@ -126,10 +137,10 @@ app.post('/merge',upload.array('files',1000),(req,res) => {
                 res.download(outputFilePath,(err) => {
                 if(err) throw err
  
-                req.files.forEach(file => {
-                    console.log('------- ', file);
-                    fs.unlinkSync(file.path);             
-                });
+                // req.files.forEach(file => {
+                //     console.log('------- ', file);
+                //     fs.unlinkSync(file.path);             
+                // });
  
                 fs.unlinkSync(listFilePath);
                 fs.unlinkSync(outputFilePath);
