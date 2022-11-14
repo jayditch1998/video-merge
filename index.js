@@ -100,51 +100,50 @@ app.post('/merge',(req,res) => {
                 return;
             }
             else{
-                console.log("videos are successfully merged");
-
-
-                fs.readFile(outputFilePath, function (err, data) {
-                    const request = https.request('https://content.dropboxapi.com/2/files/upload', {
-                    // const request = https.request('https://content.dropboxapi.com/2/files/get_thumbnail_v2', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-    
-                            'Dropbox-API-Arg': JSON.stringify({
-                                'path': `${path}/${outputFilePath}`,
-                                'mode': 'overwrite',
-                                'autorename': true, 
-                                'mute': false
-                            }),
-                            'Content-Type': 'application/octet-stream',
-                        }
-                    }, (res) => {
-                        console.log("statusCode: ", res.statusCode);
-                        console.log("headers: ", res.headers);
-                
-                        res.on('data', function(d) {
-                            process.stdout.write(d);
-                        });
-                    });
-                    request.on('error', error => {
-                        console.error(error)
-                      })
-                    request.write(data);
-                    request.end();
-                });
-
-                
                 res.download(outputFilePath,(err) => {
                 if(err) throw err
+                console.log("videos are successfully merged");
  
                 // req.files.forEach(file => {
                 //     console.log('------- ', file);
                 //     fs.unlinkSync(file.path);             
                 // });
- 
+
                 fs.unlinkSync(listFilePath);
                 fs.unlinkSync(outputFilePath);
  
+            });
+            const functionss = (data => {
+
+            });
+            fs.readFile(outputFilePath,  function (err, data) {
+                const request = https.request('https://content.dropboxapi.com/2/files/upload', {
+                // const request = https.request('https://content.dropboxapi.com/2/files/get_thumbnail_v2', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+
+                        'Dropbox-API-Arg': JSON.stringify({
+                            'path': `${path}/${outputFilePath}`,
+                            'mode': 'overwrite',
+                            'autorename': true, 
+                            'mute': false
+                        }),
+                        'Content-Type': 'application/octet-stream',
+                    }
+                }, (res) => {
+                    console.log("statusCode: ", res.statusCode);
+                    console.log("headers: ", res.headers);
+            
+                    res.on('data', function(d) {
+                        process.stdout.write(d);
+                    });
+                });
+                request.on('error', error => {
+                    console.error(error)
+                  })
+                request.write(data);
+                request.end();
             });
         }
             
